@@ -16,6 +16,7 @@ from pyod.models.copod import COPOD
 
 
 def OutlierFilter(X, y=None, alg=0, top_num_to_remove=20):
+
     # Probabilistic - Copula-Based Outlier Detection
     if alg == 0 or alg == 'copod' or alg == 'COPOD':
         clf = ABOD()
@@ -35,6 +36,7 @@ def OutlierFilter(X, y=None, alg=0, top_num_to_remove=20):
     else:
         print("Unknown outliers screening algorithm")
 
+    X = X.astype(float)
 
     if y is not None:
         clf.fit(X, y)
@@ -66,7 +68,7 @@ def OutlierFilter(X, y=None, alg=0, top_num_to_remove=20):
 rows_to_load = 1000
 
 
-def load_dataset(dataset_path, screen_outliers=True, sample=False):
+def load_dataset(dataset_path, sample=False):
     if not path.exists(dataset_path):
         system('cat data/USCensus1990.data.txt.* > data/USCensus1990.data.txt')
     if sample:
@@ -76,18 +78,18 @@ def load_dataset(dataset_path, screen_outliers=True, sample=False):
     # need to ignore caseid
     a_dataframe = a_dataframe.drop(columns=['caseid'])
 
-    if screen_outliers:
-        Outlier_indexes = OutlierFilter(a_dataframe.astype(float), alg=0, top_num_to_remove=20)
-
-    a_dataframe.drop(Outlier_indexes, axis=0, inplace=True)
-
     return a_dataframe
 
 
 def main():
+    # Loading the data
     data = load_dataset('data/USCensus1990.data.txt', sample=True)
-    print(data)
-    print()
+
+    # Filter outliers
+    outlier_indexes = OutlierFilter(data, alg=0, top_num_to_remove=20)
+    filtered_data = data.drop(outlier_indexes, axis=0, inplace=True)
+
+    print(filtered_data)
 
 
 if __name__ == '__main__':
